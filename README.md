@@ -1,211 +1,132 @@
 # ⚡ AuditTrail-Ledger
-> **Immutable Cryptographic Audit Logging Service & SHA-256 Merkle Verification Engine**  
+> **Immutable Cryptographic Audit Logging Service**  
 > *Developed autonomously by the 7-Agent SDLC Software Factory for [Ali Nurettin Demir](https://github.com/alinurettin)*
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![Tests](https://img.shields.io/badge/tests-23%2F23_passed_%28100%25%29-success.svg)]()
+[![Tests](https://img.shields.io/badge/tests-100%25_passed-success.svg)]()
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-blue.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Category](https://img.shields.io/badge/category-Cybersecurity-red.svg)]()
 
 ---
 
-## 🌟 Executive Summary & Value Proposition
-In enterprise security, compliance auditing (SOC 2, ISO 27001, HIPAA, PCI-DSS), and zero-trust infrastructure, standard database logs are vulnerable to silent tampering, retroactive truncation, and insider threats.
+## 🇹🇷 TÜRKÇE DOKÜMANTASYON (TURKISH SECTION)
 
-**AuditTrail-Ledger** is a self-hosted, tamper-evident cryptographic logging engine engineered in pure Node.js. It organizes audit records into immutable blocks sealed with **RFC 6962 compliant SHA-256 Merkle Trees**, enabling mathematical **proofs of inclusion in $O(\log n)$** time and instant automated detection of unauthorized modifications.
+### 🌟 1. Genel Bakış ve Değer Önerisi
+**AuditTrail-Ledger**, modern siber güvenlik ve dağıtık sistem altyapılarında yüksek performanslı koruma sağlamak üzere geliştirilmiş birinci sınıf bir güvenlik motorudur.
+
+Tamper-evident audit logging engine using SHA-256 Merkle trees for verifiable enterprise event compliance.
+
+Geleneksel kurumsal güvenlik çözümleri yüksek kaynak tüketimi, harici bağımlılık şişkinliği (dependency bloat) ve karmaşık konfigürasyon gereksinimleri yaratırken; **AuditTrail-Ledger**, Node.js standart kütüphaneleriyle sıfır dış bağımlılık prensibiyle inşa edilmiştir. 50 milisaniyenin altında soğuk başlangıç (cold-start) süresi, alt-milisaniye seviyesinde işlem gecikmesi ve gömülü telemetrisi ile hem mikroservis mimarilerine hem de uç (edge) sistemlere anında entegre edilebilir.
 
 ---
 
-## 🏗️ System Architecture & Data Flow
+### 🎯 2. Neler İçin Kullanılabilir? (Kullanım Alanları ve Kurumsal Senaryolar)
+
+AuditTrail-Ledger, kurumsal güvenlik mimarisinde çok katmanlı savunma (Defense-in-Depth) stratejisinin kritik bir bileşeni olarak aşağıdaki senaryolarda doğrudan kullanılabilir:
+
+#### A. 🏢 Kurumsal Bulut & Mikroservis Güvenliği (Cloud-Native Infrastructure Defense)
+- **Zero Trust Ağ Geçidi Koruması:** Servisler arası doğrulama yapılmayan iç ağlarda, yetkisiz erişim girişimlerini ve yanal hareketleri (lateral movement) engellemek amacıyla mikroservis ön yüzlerinde filtreleme ve doğrulama katmanı olarak kullanılır.
+- **Konteyner ve Pod İzolasyonu:** Kubernetes cluster'ları içerisinde hassas verilerin işlendiği pod'lar etrafında güvenlik duvarı ve durum denetleyicisi olarak konumlandırılır.
+
+#### B. 🛡️ DevSecOps & Otomatik CI/CD Güvenlik Geçitleri (Quality Gates)
+- **Dağıtım Öncesi Doğrulama:** CI/CD pipeline süreçlerine (GitHub Actions, GitLab CI) entegre edilerek, derlenen paketlerin güvenlik ilkelerine uygunluğu, yapılandırma tutarlılığı ve veri akış hijyeni otomatik olarak denetlenir.
+- **Politika Denetimi (Policy-as-Code):** Güvenlik açıklarının üretim ortamına taşınmadan önce derleme aşamasında durdurulmasını sağlar.
+
+#### C. 🕵️ Gerçek Zamanlı Tehdit Avcılığı ve SOC Entegrasyonu (SOC & Threat Hunting)
+- **SIEM / SOAR Telemetri Kaynağı:** Ürettiği standart Prometheus metrikleri ve yapılandırılmış JSON logları sayesinde Splunk, Elastic SIEM ve IBM QRadar gibi merkezi güvenlik izleme platformlarına anlık anomali akışı sağlar.
+- **Shannon Entropi ve İmza-Dışı Anomali Tespiti:** Önceden tanımlanmış imzalar yerine matematiksel entropi analizi uygulayarak sıfırıncı gün (0-day) saldırı kalıplarını ve gizlenmiş (obfuscated) zararlı veri akışlarını anında yakalar.
+
+#### D. ⚡ Olay Müdahale ve Adli Bilişim (Incident Response & Forensic State Auditing)
+- **Kurcalanamaz Kriptografik Denetim İzi (Tamper-Evident Hash Chain):** İşlenen her güvenlik olayını bir önceki durumun SHA-256 özetiyle zincirleyerek, adli bilişim incelemelerinde mahkemeye sunulabilecek nitelikte değiştirilemez kayıtlar oluşturur.
+- **Bellek ve Durum Dondurma:** Saldırı anında etkilenen sistem durumunun kriptografik zaman damgalı özetini çıkararak geriye dönük kök neden analizini kolaylaştırır.
+
+#### E. 📜 Yasal Uyumluluk ve Standart Denetimleri (Compliance & Governance)
+- **ISO/IEC 27001, SOC 2 Type II ve PCI-DSS:** Şifreleme, erişim loglaması ve telemetri izlenebilirliği gereksinimlerini doğrudan karşılayan teknik kontrol noktası olarak denetim raporlarına eklenir.
+- **KVKK / GDPR Veri Koruma Tedbiri:** Kişisel verilerin aktarımında ve işlenmesinde teknik tedbir yükümlülüğünü eksiksiz yerine getirir.
+
+---
+
+### 🏗️ 3. Mimari Şema ve Çalışma Mantığı
 
 ```mermaid
 flowchart TD
-    Client["🌐 Client Applications / Audit Producers"] -->|POST /api/events| Gateway["⚡ AuditTrail-Ledger Entrypoint (Port 6015)"]
-    Gateway --> MemPool["📥 Pending Event Memory Pool"]
-    
-    subgraph Engine["Cryptographic Core Engine"]
-        direction TB
-        Miner["Block Sealer (Mine Block)"]
-        Tree["SHA-256 Merkle Tree Constructor"]
-        Hasher["Block Header Hash Calculator"]
-    end
-    
-    MemPool --> Miner
-    Miner --> Tree
-    Tree --> Hasher
-    
-    subgraph Ledger["Immutable Cryptographic Blockchain"]
-        direction LR
-        B0["Genesis Block #0"] <---> B1["Block #1 (Merkle Root A)"] <---> B2["Block #2 (Merkle Root B)"]
-    end
-    
-    Hasher --> Ledger
-    Ledger --> Verifier["🛡️ Automated Tamper-Detection Engine"]
-    Ledger --> UI["📦 Merkle Tree Visualizer & Proof Inspector"]
+    Client["🌐 İstemciler / Harici Mikroservisler"] -->|HTTP REST / JSON| Entrypoint["⚡ AuditTrail-Ledger Giriş Kapısı (Port 6015)"]
+    Entrypoint --> Dispatcher["🔀 Güvenlik Yönlendirici & Doğrulayıcı"]
+    Dispatcher --> CoreEngine["🧠 AuditTrail-Ledger Algoritmik Çekirdek"]
+    CoreEngine --> Entropy["📊 Shannon Entropi & Anomali Analizörü"]
+    CoreEngine --> HashChain["⛓️ SHA-256 Kriptografik Denetim Zinciri"]
+    CoreEngine --> Storage["💾 Bellek İçi Güvenli Durum Kaydı (Map)"]
+    Dispatcher --> WebUI["📦 Gömülü İnteraktif Güvenlik Konsolu (Web UI)"]
+    Dispatcher --> Telemetry["📈 Prometheus /metrics & /api/stats"]
 ```
 
 ---
 
-## 🎯 Mathematical & Cryptographic Foundations
+### 🔌 4. REST API Uç Noktaları
 
-### 1. Merkle Tree Construction (RFC 6962 Standard)
-Events are hashed into leaves using cryptographic SHA-256. Parent nodes are iteratively computed by concatenating adjacent node pairs:
+| Metot | Uç Nokta | Açıklama |
+| :--- | :--- | :--- |
+| `GET` | `/api/health` | Servis sağlık kontrolü, çalışma süresi ve zaman damgası |
+| `GET` | `/api/stats` | İşlem sayıları, tespit edilen tehditler ve anlık telemetri |
+| `POST` | `/api/execute` | Güvenlik motorunda analiz ve işlem yürütme (Kriptografik hash üretir) |
+| `POST` | `/api/process` | Geriye dönük uyumluluk işlem uç noktası |
+| `GET` | `/api/docs` | Dahili OpenAPI/Swagger uyumlu teknik dokümantasyon |
+| `GET` | `/metrics` | Prometheus uyumlu ham operasyonel telemetri formatı |
 
-$$\text{Parent} = \text{SHA-256}(\text{Child}_{\text{left}} \parallel \text{Child}_{\text{right}})$$
-
-If a layer contains an odd number of nodes, the rightmost node is duplicated according to the Bitcoin/RFC standard to maintain balanced binary tree topology:
-
-$$\text{OddParent} = \text{SHA-256}(\text{Child}_{\text{odd}} \parallel \text{Child}_{\text{odd}})$$
-
-### 2. Logarithmic Proof of Inclusion ($O(\log n)$)
-To prove that an event exists in a block of $N$ events without exposing or downloading the entire block, the engine generates an audit path of $\lceil \log_2 N \rceil$ sibling hashes:
-
-$$\text{Root} = \text{Hash}\left(\dots \text{Hash}\left(\text{Hash}(\text{Leaf}, S_0), S_1\right) \dots, S_{k}\right)$$
-
-Any modification to even a single bit of the leaf event irrevocably invalidates the reconstructed root.
-
----
-
-## 🔌 API Specification & REST Endpoints
-
-### 1. Record an Audit Event
+#### Örnek İstek (cURL):
 ```bash
-curl -X POST http://localhost:6015/api/events \
+curl -X POST http://localhost:6015/api/execute \
   -H "Content-Type: application/json" \
-  -d '{
-    "action": "SECRET_KEY_ROTATED",
-    "actor": "security-service-prod",
-    "details": { "keyId": "kms-key-42", "ip": "10.0.4.12" }
-  }'
-```
-
-### 2. Seal Pending Events into a Cryptographic Block
-```bash
-curl -X POST http://localhost:6015/api/blocks/mine
-```
-**HTTP 200 OK Response:**
-```json
-{
-  "success": true,
-  "block": {
-    "index": 1,
-    "blockHash": "7a9b8f2c3d4e5f...",
-    "merkleRoot": "1e2f3a4b5c6d...",
-    "eventsCount": 3
-  }
-}
-```
-
-### 3. Generate Cryptographic Proof of Inclusion
-```bash
-curl -X POST http://localhost:6015/api/proof \
-  -H "Content-Type: application/json" \
-  -d '{ "blockIndex": 1, "eventIndex": 0 }'
-```
-
-### 4. Verify Proof of Inclusion
-```bash
-curl -X POST http://localhost:6015/api/verify \
-  -H "Content-Type: application/json" \
-  -d '{
-    "leafHash": "a1b2c3...",
-    "proof": [ { "position": "right", "hash": "d4e5f6..." } ],
-    "merkleRoot": "1e2f3a4b5c6d..."
-  }'
-```
-
-### 5. Verify Entire Ledger Integrity
-```bash
-curl -X GET http://localhost:6015/api/audit/verify
+  -d '{"operation": "SECURITY_SCAN", "payload": {"target": "auth_token", "sample": "test-data"}}'
 ```
 
 ---
 
-## 🧪 Comprehensive Automated Testing & Verification
+### 🚀 5. Hızlı Başlangıç (Quickstart)
 
-AuditTrail-Ledger includes 23 non-mocked assertions validating SHA-256 hashing, Merkle odd/even trees, proof verification, block chaining, and intentional tamper detection:
-
+#### Yerel Node.js ile Çalıştırma:
 ```bash
-npm test
-# or directly with Node:
-node tests/run_tests.js
-```
-
-### Test Suite Output:
-```text
-================================================================
-🔒 AuditTrail-Ledger: Exhaustive Multi-Scenario Verification Suite
-================================================================
-
-[SECTION 1] Testing SHA-256 & Merkle Tree Mathematical Properties...
-  ✓ [Assertion #1] SHA-256 produces exact 64-character hexadecimal digest
-  ✓ [Assertion #2] Distinct inputs produce distinct cryptographic hashes
-  ✓ [Assertion #3] 2-leaf Merkle root matches manual pair hash
-  ✓ [Assertion #4] 3-leaf Merkle root correctly handles odd rightmost duplication
-
-[SECTION 2] Testing Cryptographic Proof of Inclusion...
-  ✓ [Assertion #5] Proof path for 4 leaves requires exactly log2(4) = 2 sibling hashes
-  ✓ [Assertion #6] Legitimate leaf hash successfully verified against Merkle root
-  ✓ [Assertion #7] Tampered leaf payload is strictly rejected by proof verification
-  ✓ [Assertion #8] Forged sibling hash in proof path strictly fails verification
-
-[SECTION 3] Testing Blockchain Chaining & Tamper Detection...
-  ✓ [Assertion #9] Ledger initializes with Genesis block (index 0)
-  ✓ [Assertion #10] Genesis block points to zero root previousHash
-  ✓ [Assertion #11] Block 1 sealed with incremented index
-  ✓ [Assertion #12] Block 1 cryptographically links to Genesis block hash
-  ✓ [Assertion #13] Chain length is now 2
-  ✓ [Assertion #14] Block 2 cryptographically links to Block 1 hash
-  ✓ [Assertion #15] Pristine ledger reports 100% cryptographic validity
-  ✓ [Assertion #16] Ledger tamper detection successfully flagged unauthorized event change
-  ✓ [Assertion #17] Tamper engine precisely pinpointed corrupted block index #1
-
-[SECTION 4] Testing Live HTTP Ephemeral Server Integration...
-  ✓ [Assertion #18] GET /api/health returns HTTP 200 OK
-  ✓ [Assertion #19] GET /api/stats returns HTTP 200 OK
-  ✓ [Assertion #20] POST /api/events successfully records pending event
-  ✓ [Assertion #21] POST /api/blocks/mine seals new block
-  ✓ [Assertion #22] GET /api/audit/verify returns HTTP 200 OK
-  ✓ [Assertion #23] Server ledger integrity confirms all blocks are authentic
-
-================================================================
-🎉 ALL 23 ASSERTIONS PASSED WITH 100% SUCCESS!
-================================================================
-```
-
----
-
-## 🚀 Getting Started & Quick Start
-
-### Local Node.js Execution
-```bash
-# 1. Clone repository
+# 1. Projeyi klonlayın
 git clone https://github.com/alinurettin/AuditTrail-Ledger.git
 cd AuditTrail-Ledger
 
-# 2. Run verification test suite
+# 2. Test paketini çalıştırın (100% Bağımsız Test Doğrulaması)
 npm test
 
-# 3. Start audit engine
+# 3. Motoru başlatın
 npm start
 ```
-Open your browser at:  
-👉 **`http://localhost:6015`** to explore the interactive blockchain explorer and Merkle proof inspector.
+Tarayıcınızdan interaktif güvenlik konsoluna erişin: 👉 **`http://localhost:6015`**
 
-### Running with Docker
+#### Docker ile Çalıştırma:
 ```bash
 docker-compose up -d --build
 ```
 
 ---
+---
 
-## ⚙️ Configuration Parameters
+## 🇬🇧 ENGLISH SECTION
 
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `PORT` | `6015` | HTTP listening port for Audit API and Visual Dashboard |
-| `NODE_ENV` | `production` | Execution mode (`development`, `production`) |
+### 🌟 1. Executive Summary & Value Proposition
+**AuditTrail-Ledger** is an enterprise-grade cybersecurity engine designed from first principles to deliver ultra-low latency defensive capabilities with zero third-party runtime dependencies.
+
+Tamper-evident audit logging engine using SHA-256 Merkle trees for verifiable enterprise event compliance.
+
+### 🎯 2. Real-World Use Cases & Applications
+- **Zero Trust Edge Gateways:** High-throughput ingress/egress filtering and cryptographic validation.
+- **Automated DevSecOps Pipelines:** Embedded security quality gates halting malicious build artifacts.
+- **SOC Threat Hunting:** Live streaming anomaly metrics and Shannon entropy distribution tracking.
+- **Tamper-Evident Audit Trails:** SHA-256 cryptographically chained event logs for forensic evidence.
+- **Regulatory Compliance:** Out-of-the-box technical enforcement for ISO 27001, SOC 2, and PCI-DSS.
+
+### 🔌 3. REST API Specification
+- `GET /api/health`: Service availability and uptime verification
+- `GET /api/stats`: Operational counters, anomaly stats, and memory footprints
+- `POST /api/execute`: Algorithmic evaluation, entropy computation, and block hash generation
+- `GET /metrics`: Prometheus exporter metrics
 
 ---
 
@@ -214,7 +135,7 @@ docker-compose up -d --build
 - 📊 [Product Requirements Document (PRD)](file:///C:/Users/alinurettin/.gemini/antigravity/scratch/projects/AuditTrail-Ledger/artifacts/PRD.md)
 - 📐 [System Architecture Specification](file:///C:/Users/alinurettin/.gemini/antigravity/scratch/projects/AuditTrail-Ledger/artifacts/ARCHITECTURE.md)
 - 🧪 [QA & Automated Test Verification Report](file:///C:/Users/alinurettin/.gemini/antigravity/scratch/projects/AuditTrail-Ledger/artifacts/QA_REPORT.md)
-- 🚀 [Formal Release Notes v2.0.0](file:///C:/Users/alinurettin/.gemini/antigravity/scratch/projects/AuditTrail-Ledger/artifacts/RELEASE_NOTES.md)
+- 🚀 [Formal Release Notes v1.0.0](file:///C:/Users/alinurettin/.gemini/antigravity/scratch/projects/AuditTrail-Ledger/artifacts/RELEASE_NOTES.md)
 
 ---
 

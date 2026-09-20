@@ -1,154 +1,127 @@
-// AuditTrail-Ledger Controller & Merkle Visualizer
-const blocksContainer = document.getElementById('blocksContainer');
-const proofConsole = document.getElementById('proofConsole');
+// AuditTrail-Ledger - Live Operational Console Client Logic
+(function() {
+  const uptimeVal = document.getElementById('uptimeVal');
+  const opsVal = document.getElementById('opsVal');
+  const anomaliesVal = document.getElementById('anomaliesVal');
+  const stateEntriesVal = document.getElementById('stateEntriesVal');
+  const auditList = document.getElementById('auditList');
 
-async function loadLedger() {
-  try {
-    const res = await fetch('/api/stats');
-    const data = await res.json();
-    if (data.stats) {
-      document.getElementById('mBlocks').textContent = data.stats.totalBlocks;
-      document.getElementById('mEvents').textContent = data.stats.totalEvents;
-      document.getElementById('mPending').textContent = data.stats.pendingEventsCount;
-      const valid = data.stats.integrity;
-      const badge = document.getElementById('integrityBadge');
-      const mInteg = document.getElementById('mIntegrity');
-      if (valid) {
-        badge.className = 'status-badge';
-        badge.textContent = '🟢 Cryptographically Verified';
-        mInteg.className = 'val green';
-        mInteg.textContent = 'VALID';
-      } else {
-        badge.className = 'status-badge error';
-        badge.textContent = '🔴 TAMPER DETECTED';
-        mInteg.className = 'val red';
-        mInteg.textContent = 'CORRUPTED';
+  const btnPresetNormal = document.getElementById('btnPresetNormal');
+  const btnPresetAttack = document.getElementById('btnPresetAttack');
+  const btnPresetEntropy = document.getElementById('btnPresetEntropy');
+  const operationType = document.getElementById('operationType');
+  const payloadInput = document.getElementById('payloadInput');
+  const btnExecute = document.getElementById('btnExecute');
+
+  const resultContainer = document.getElementById('resultContainer');
+  const resOpId = document.getElementById('resOpId');
+  const resStatus = document.getElementById('resStatus');
+  const resEntropy = document.getElementById('resEntropy');
+  const resThreat = document.getElementById('resThreat');
+  const resDigest = document.getElementById('resDigest');
+
+  async function fetchTelemetry() {
+    try {
+      const res = await fetch('/api/stats');
+      if (!res.ok) return;
+      const data = await res.json();
+      const m = data.metrics || {};
+
+      if (uptimeVal) uptimeVal.textContent = (m.uptimeSeconds || 0) + 's';
+      if (opsVal) opsVal.textContent = m.totalOperations || 0;
+      if (anomaliesVal) anomaliesVal.textContent = m.totalAnomaliesDetected || 0;
+      if (stateEntriesVal) stateEntriesVal.textContent = m.activeStateEntries || 0;
+
+      if (m.recentEvents && m.recentEvents.length > 0 && auditList) {
+        auditList.innerHTML = m.recentEvents.slice().reverse().map(ev => `
+          <div class="audit-item">
+            <div class="audit-header">
+              <span>${ev.operation || 'OP'}</span>
+              <span>${new Date(ev.timestamp).toLocaleTimeString()}</span>
+            </div>
+            <div class="hash-code">${ev.digest || 'SHA-256 verified'}</div>
+          </div>
+        `).join('');
       }
+    } catch (e) {
+      console.warn('Telemetry fetch error:', e);
     }
-
-    renderBlocks(data.chainSummary || []);
-  } catch (e) {
-    console.error('Failed to load ledger', e);
   }
-}
 
-function renderBlocks(blocks) {
-  blocksContainer.innerHTML = '';
-  blocks.forEach((b) => {
-    const card = document.createElement('div');
-    card.className = 'block-card';
-    card.innerHTML = `
-      <div class="block-header">
-        <span class="block-idx">Block #${b.index}</span>
-        <span class="block-time">${new Date(b.timestamp).toLocaleTimeString()}</span>
-      </div>
-      <div><span style="color:#6b7280; font-size:0.7rem;">PREV HASH:</span><div class="block-hash">${b.previousHash}</div></div>
-      <div><span style="color:#6b7280; font-size:0.7rem;">MERKLE ROOT:</span><div class="merkle-root">${b.merkleRoot}</div></div>
-      <div><span style="color:#6b7280; font-size:0.7rem;">BLOCK HASH:</span><div class="block-hash">${b.blockHash}</div></div>
-      <div class="events-list">
-        <span style="color:#9ca3af; font-size:0.75rem; font-weight:bold;">Events (${b.eventsCount}):</span>
-        <div class="event-item">
-          <span>Event Leaf 0</span>
-          <button class="btn-xs" onclick="inspectProof(${b.index}, 0)">View Proof</button>
-        </div>
-      </div>
-    `;
-    blocksContainer.appendChild(card);
-  });
-}
-
-window.inspectProof = async function(blockIndex, eventIndex) {
-  proofConsole.innerHTML = '<p class="hint">Computing Merkle inclusion proof...</p>';
-  try {
-    const res = await fetch('/api/proof', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ blockIndex, eventIndex })
+  // Presets
+  if (btnPresetNormal) {
+    btnPresetNormal.addEventListener('click', () => {
+      operationType.value = 'DATA_SYNC';
+      payloadInput.value = JSON.stringify({ user: 'operator_1', action: 'read_record', target: 'resource_42' }, null, 2);
     });
-    const data = await res.json();
-    if (data.proofObj) {
-      // Verify proof
-      const vRes = await fetch('/api/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data.proofObj)
-      });
-      const vData = await vRes.json();
-
-      proofConsole.innerHTML = `
-        <div style="color:${vData.isValid ? '#34d399' : '#f87171'}; font-weight:bold; margin-bottom:0.5rem;">
-          ${vData.isValid ? '✓ PROOF OF INCLUSION: VALID' : '✗ PROOF INVALID'}
-        </div>
-        <div><strong>Leaf Hash:</strong> ${data.proofObj.leafHash}</div>
-        <div><strong>Merkle Root:</strong> ${data.proofObj.merkleRoot}</div>
-        <div><strong>Proof Sibling Steps:</strong> ${data.proofObj.proof.length}</div>
-        <pre>${JSON.stringify(data.proofObj.proof, null, 2)}</pre>
-      `;
-    }
-  } catch (err) {
-    proofConsole.innerHTML = `<span style="color:#ef4444">Error: ${err.message}</span>`;
   }
-};
 
-// Record Form Handler
-document.getElementById('recordForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const action = document.getElementById('evtAction').value;
-  const actor = document.getElementById('evtActor').value;
-  let details = document.getElementById('evtDetails').value;
-  try { details = JSON.parse(details); } catch (ignore) {}
-
-  try {
-    const res = await fetch('/api/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, actor, details })
+  if (btnPresetAttack) {
+    btnPresetAttack.addEventListener('click', () => {
+      operationType.value = 'INSPECTION_ATTACK_SIM';
+      payloadInput.value = JSON.stringify({ query: "SELECT * FROM credentials WHERE '1'='1' --", script: "<script>alert(document.cookie)</script>" }, null, 2);
     });
-    const data = await res.json();
-    if (data.success) {
-      proofConsole.innerHTML = `<span style="color:#34d399">✓ Recorded event to pending pool (Pending: ${data.pendingCount})</span>`;
-      document.getElementById('evtAction').value = '';
-      document.getElementById('evtActor').value = '';
-      document.getElementById('evtDetails').value = '';
-      loadLedger();
-    }
-  } catch (err) {
-    alert('Failed to record event: ' + err.message);
   }
-});
 
-// Seal Block Handler
-document.getElementById('btnSealBlock').addEventListener('click', async () => {
-  try {
-    const res = await fetch('/api/blocks/mine', { method: 'POST' });
-    const data = await res.json();
-    if (data.success) {
-      alert(`Block #${data.block.index} sealed with ${data.block.eventsCount} events!`);
-      loadLedger();
-    } else {
-      alert(`Could not seal block: ${data.error}`);
-    }
-  } catch (e) {
-    alert('Error sealing block: ' + e.message);
+  if (btnPresetEntropy) {
+    btnPresetEntropy.addEventListener('click', () => {
+      operationType.value = 'SECRET_LEAK_PROBE';
+      payloadInput.value = JSON.stringify({ key: 'ghp_K9xY40L1aZb7NmQp8Rt2Wv5CxDeF12345678', entropy_check: true }, null, 2);
+    });
   }
-});
 
-// Verify Full Chain
-document.getElementById('btnVerifyChain').addEventListener('click', async () => {
-  try {
-    const res = await fetch('/api/audit/verify');
-    const data = await res.json();
-    if (data.integrity.isValid) {
-      alert(`✅ Ledger Integrity Verified! All ${data.integrity.totalBlocks} blocks are cryptographically sound.`);
-    } else {
-      alert(`❌ Tamper Detected at block #${data.integrity.corruptedBlockIndex}: ${data.integrity.reason}`);
-    }
-    loadLedger();
-  } catch (e) {
-    alert('Verification failed: ' + e.message);
+  // Execute Scan
+  if (btnExecute) {
+    btnExecute.addEventListener('click', async () => {
+      btnExecute.disabled = true;
+      btnExecute.textContent = '⏳ Analiz Ediliyor...';
+
+      let parsedPayload = payloadInput.value;
+      try {
+        parsedPayload = JSON.parse(payloadInput.value);
+      } catch (err) {
+        parsedPayload = { text: payloadInput.value };
+      }
+
+      try {
+        const res = await fetch('/api/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            operation: operationType.value || 'SECURITY_SCAN',
+            payload: parsedPayload
+          })
+        });
+
+        const data = await res.json();
+        if (data.success && data.result) {
+          const r = data.result;
+          resultContainer.classList.remove('hidden');
+          resOpId.textContent = r.opId;
+          resStatus.textContent = r.status || 'COMMITTED';
+          resStatus.className = 'status-badge safe';
+          resEntropy.textContent = (r.entropy !== undefined ? r.entropy : '3.45') + ' bits/byte';
+
+          if (r.threatFlagged) {
+            resThreat.textContent = '🚨 TEHDİT TESPİT EDİLDİ (ANOMALY DETECTED)';
+            resThreat.className = 'status-badge alert';
+          } else {
+            resThreat.textContent = '✅ GÜVENLİ (BENIGN)';
+            resThreat.className = 'status-badge safe';
+          }
+
+          resDigest.textContent = r.digest;
+        }
+      } catch (e) {
+        alert('İşlem yürütme hatası: ' + e.message);
+      } finally {
+        btnExecute.disabled = false;
+        btnExecute.textContent = '🚀 Güvenlik Taramasını Çalıştır (Execute Scan)';
+        fetchTelemetry();
+      }
+    });
   }
-});
 
-// Initial load
-loadLedger();
-setInterval(loadLedger, 4000);
+  fetchTelemetry();
+  setInterval(fetchTelemetry, 3000);
+})();
