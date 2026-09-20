@@ -1,36 +1,74 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AuditTrail-Ledger | Operational Studio</title>
+  <title>AuditTrail-Ledger | Cryptographic Merkle Audit Engine</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="header">
     <div class="brand">
-      <span class="logo">⚡</span>
+      <span class="logo">🔒</span>
       <div>
         <h1>AuditTrail-Ledger</h1>
-        <span class="sub">Immutable Cryptographic Audit Logging Service</span>
+        <span class="sub">Immutable Cryptographic Audit Logging & Merkle Tree Verification</span>
       </div>
     </div>
-    <div class="status-badge">🟢 Operational Active</div>
+    <div class="status-badge" id="integrityBadge">🟢 Cryptographically Verified</div>
   </header>
+
   <main class="main">
-    <div class="card">
-      <h2>Engine Overview</h2>
-      <p>Tamper-evident audit logging engine using SHA-256 Merkle trees for verifiable enterprise event compliance.</p>
-      <div class="metrics-row" id="metricsRow">
-        <div class="metric"><span class="lbl">STATUS</span><span class="val">HEALTHY</span></div>
-        <div class="metric"><span class="lbl">LATENCY</span><span class="val">1.2 ms</span></div>
-        <div class="metric"><span class="lbl">THROUGHPUT</span><span class="val">1,250 req/s</span></div>
+    <!-- Telemetry Cards -->
+    <div class="metrics-grid">
+      <div class="metric"><span class="lbl">TOTAL BLOCKS</span><span class="val" id="mBlocks">1</span></div>
+      <div class="metric"><span class="lbl">TOTAL EVENTS</span><span class="val green" id="mEvents">3</span></div>
+      <div class="metric"><span class="lbl">PENDING EVENTS</span><span class="val blue" id="mPending">0</span></div>
+      <div class="metric"><span class="lbl">LEDGER INTEGRITY</span><span class="val green" id="mIntegrity">VALID</span></div>
+    </div>
+
+    <!-- Cryptographic Block Chain Explorer -->
+    <div class="card chain-card">
+      <div class="card-header">
+        <h2>Cryptographic Block Chain & Merkle Roots</h2>
+        <div class="header-actions">
+          <button class="btn btn-secondary" id="btnSealBlock">Seal Pending Events into Block</button>
+          <button class="btn btn-outline" id="btnVerifyChain">Verify Full Chain</button>
+        </div>
+      </div>
+      <div class="blocks-container" id="blocksContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Merkle Proof & Event Logger -->
+    <div class="card op-card">
+      <h2>Interactive Audit Event Logger & Proof Generator</h2>
+      <div class="op-grid">
+        <div class="op-col">
+          <h3>Record New Enterprise Audit Event</h3>
+          <form id="recordForm">
+            <input type="text" id="evtAction" placeholder="Action (e.g. USER_LOGIN, FILE_DOWNLOAD)" required>
+            <input type="text" id="evtActor" placeholder="Actor (e.g. admin, service-account)" required>
+            <input type="text" id="evtDetails" placeholder='Details (e.g. {"resource":"db_cluster", "ip":"192.168.1.1"})' required>
+            <button type="submit" class="btn btn-primary">Record to Pending Pool</button>
+          </form>
+        </div>
+
+        <div class="op-col">
+          <h3>Proof of Inclusion Verification Console</h3>
+          <div class="proof-console" id="proofConsole">
+            <p class="hint">Click "View Proof" on any block event above to inspect its cryptographic SHA-256 Merkle audit path.</p>
+          </div>
+        </div>
       </div>
     </div>
   </main>
+
   <footer class="footer">
     <p>AuditTrail-Ledger &bull; Autonomously engineered by 7-Agent SDLC Factory for <a href="https://github.com/alinurettin/AuditTrail-Ledger" target="_blank">Ali Nurettin Demir</a></p>
   </footer>
+
   <script src="app.js"></script>
 </body>
 </html>
