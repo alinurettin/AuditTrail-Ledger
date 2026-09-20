@@ -1,4 +1,4 @@
-﻿# ğŸ“Š Product Requirements Document (PRD): AuditTrail-Ledger
+﻿# 📊 Product Requirements Document (PRD): AuditTrail-Ledger
 - **Project:** AuditTrail-Ledger
 - **Author:** Expert Business Analyst
 - **Status:** APPROVED & COMPLETE
