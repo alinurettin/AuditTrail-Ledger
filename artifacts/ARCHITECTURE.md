@@ -1,4 +1,4 @@
-﻿# ğŸ“ System Architecture Document: AuditTrail-Ledger
+﻿# 📐 System Architecture Document: AuditTrail-Ledger
 - **Project:** AuditTrail-Ledger
 - **Author:** Expert Software Architect
 - **Status:** APPROVED & COMPLETE
