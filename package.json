@@ -1,0 +1,12 @@
+﻿{
+  "name": "audittrail-ledger",
+  "version": "1.0.0",
+  "description": "Tamper-evident audit logging engine using SHA-256 Merkle trees for verifiable enterprise event compliance.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node tests/run_tests.js"
+  },
+  "author": "Ali Nurettin Demir",
+  "license": "MIT"
+}
